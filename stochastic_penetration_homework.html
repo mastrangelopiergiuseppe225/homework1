@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stochastic Penetration Scores — Homework</title>
+<style>
+:root{--bg:#0b1020;--panel:#131b30;--panel2:#18223b;--text:#edf2ff;--muted:#a9b5d1;--line:#2c3958;--blue:#76a9ff;--cyan:#58dfd0;--orange:#ffb86b;--pink:#f38ab8;--green:#9be2a5}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#172544 0,#0b1020 48%);color:var(--text);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:1180px;margin:auto;padding:28px 20px 70px}header{padding:34px 0 20px} .eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:.76rem;color:var(--cyan);font-weight:800}
+h1{font-size:clamp(2rem,5vw,3.6rem);line-height:1.08;max-width:900px;margin:.5rem 0 1rem;letter-spacing:-.04em}h2{font-size:1.55rem;margin:0 0 12px}h3{font-size:1.08rem;margin:0 0 8px}p{color:#d7def0;margin:.55rem 0 1rem}.lead{font-size:1.15rem;max-width:850px;color:var(--muted)}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}.pill{border:1px solid var(--line);background:#111a2d;padding:6px 11px;border-radius:999px;color:#c8d8ff;font-size:.85rem}
+section{margin-top:26px}.panel{background:linear-gradient(145deg,rgba(24,34,59,.97),rgba(17,25,44,.97));border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 16px 40px #0002}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.formula{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#0b1224;border:1px solid #293654;padding:13px 15px;border-radius:10px;overflow-wrap:anywhere;color:#e6edff;margin:12px 0}.small{font-size:.9rem;color:var(--muted)}.accent{color:var(--cyan)}.blue{color:var(--blue)}.orange{color:var(--orange)}
+.controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}.control{background:#0c1427;border:1px solid var(--line);border-radius:12px;padding:12px}.control label{display:flex;justify-content:space-between;gap:8px;font-size:.88rem;color:var(--muted);margin-bottom:8px}.control output{color:var(--text);font-weight:700}input[type=range],select{width:100%;accent-color:var(--blue)}select{background:#18223b;color:var(--text);border:1px solid var(--line);padding:8px;border-radius:8px}
+button{background:var(--blue);color:#091226;border:0;border-radius:10px;padding:11px 17px;font-weight:800;cursor:pointer;margin:14px 8px 0 0}button.secondary{background:#253451;color:var(--text);border:1px solid #3a4c70}button:hover{filter:brightness(1.08)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.stat{background:#0c1427;border:1px solid var(--line);padding:13px;border-radius:12px}.stat .label{font-size:.8rem;color:var(--muted)}.stat strong{display:block;font-size:1.35rem;margin-top:3px}
+.chartwrap{background:#0b1224;border:1px solid var(--line);border-radius:14px;padding:10px;min-width:0}.charttitle{padding:7px 9px 0;font-weight:750}.chart{display:block;width:100%;height:280px}.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+table{border-collapse:collapse;width:100%;margin:12px 0}th,td{text-align:left;border-bottom:1px solid var(--line);padding:10px 9px;vertical-align:top}th{color:#b9caff;font-size:.9rem}td{color:#dce4f7}.callout{border-left:3px solid var(--cyan);padding:12px 15px;background:#0e1a2b;border-radius:0 10px 10px 0;margin:14px 0}.warning{border-left-color:var(--orange)}.foot{margin-top:35px;border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:.88rem}
+@media(max-width:800px){.grid,.charts{grid-template-columns:1fr}.controls{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){main{padding:15px 12px 45px}.panel{padding:16px}.controls,.three{grid-template-columns:1fr}.chart{height:240px}h1{font-size:2.25rem}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="eyebrow">Probability · Stochastic processes · Simulation lab</div>
+<h1>Stochastic Penetration Scores</h1>
+<div class="pills"><span class="pill">i.i.d. increments</span><span class="pill">Bernoulli model</span><span class="pill">Rademacher model</span><span class="pill">Interactive simulation</span></div>
+</header>
+
+<section class="panel">
+<h2>1. Model and assumptions</h2>
+<p>We model the aggregate penetration score after <em>n</em> steps as a sum of independent and identically distributed (i.i.d.) random increments \(X_1,\ldots,X_n\). A trajectory is one simulated realization of these increments.</p>
+<div class="grid">
+<div>
+<h3 class="blue">Bernoulli model</h3>
+<div class="formula">Xᵢ ∈ {0, 1}; &nbsp; P(Xᵢ = 1) = p</div>
+<p>A step either adds one successful penetration point (probability <em>p</em>) or adds zero. The expected increment is <em>p</em>, and its variance is <em>p(1 − p)</em>.</p>
+<div class="formula">E[Xᵢ] = p &nbsp; · &nbsp; Var(Xᵢ) = p(1 − p)</div>
+</div>
+<div>
+<h3 class="accent">Rademacher model</h3>
+<div class="formula">Xᵢ ∈ {−1, +1}; &nbsp; P(Xᵢ = ±1) = 1/2</div>
+<p>Each step contributes either +1 or −1 with equal probability. Positive and negative increments balance on average, making this a symmetric, zero-mean model.</p>
+<div class="formula">E[Xᵢ] = 0 &nbsp; · &nbsp; Var(Xᵢ) = 1</div>
+</div>
+</div>
+<div class="callout"><strong>Interpretation of n and m.</strong> Here, <em>n</em> is the number of accumulated steps/systems represented in the sum. <em>m</em> is the number of attackers. The prompt does not specify how multiple attackers alter the distribution of each increment, so the simulation treats <em>m</em> as contextual information rather than silently changing <em>p</em> or the increment law. To model attacker interactions, one would need an explicit rule connecting <em>m</em> to success probabilities, dependence, or the number of attempts.</div>
+</section>
+
+<section class="panel">
+<h2>2. Quantities of interest</h2>
+<div class="three">
+<div><h3>Total score</h3><div class="formula">Sₙ = Σ Xᵢ</div><p class="small">The cumulative score. Its typical magnitude depends on both drift and random fluctuations.</p></div>
+<div><h3>Average score</h3><div class="formula">Sₙ / n</div><p class="small">The score per step. This removes growth proportional to the number of steps.</p></div>
+<div><h3>Normalized total</h3><div class="formula">Sₙ / √n</div><p class="small">The fluctuation scale used by the Central Limit Theorem when increments have finite, nonzero variance.</p></div>
+</div>
+<table>
+<thead><tr><th>Quantity</th><th>Bernoulli model</th><th>Rademacher model</th></tr></thead>
+<tbody>
+<tr><td>Mean of Sₙ</td><td>np</td><td>0</td></tr>
+<tr><td>Variance of Sₙ</td><td>np(1 − p)</td><td>n</td></tr>
+<tr><td>Mean of Sₙ/n</td><td>p</td><td>0</td></tr>
+<tr><td>Variance of Sₙ/n</td><td>p(1 − p)/n</td><td>1/n</td></tr>
+<tr><td>Mean of Sₙ/√n</td><td>p√n</td><td>0</td></tr>
+<tr><td>Variance of Sₙ/√n</td><td>p(1 − p)</td><td>1</td></tr>
+</tbody>
+</table>
+<p class="small">These formulas follow from independence: the mean of a sum is the sum of means, and the variance of a sum of independent variables is the sum of variances.</p>
+</section>
+
+<section class="panel" id="lab">
+<h2>3. Interactive simulation lab</h2>
+<p>Choose a model and parameters, then simulate many independent trajectories. Histograms approximate the distribution across repeated experiments; the path chart shows a small sample of individual runs.</p>
+<div class="controls">
+<div class="control"><label for="model">Increment model</label><select id="model"><option value="rademacher">Rademacher (±1)</option><option value="bernoulli">Bernoulli (0/1)</option></select></div>
+<div class="control"><label for="n">Number of steps n <output id="nOut">100</output></label><input id="n" type="range" min="10" max="1000" step="10" value="100"></div>
+<div class="control"><label for="m">Number of attackers m <output id="mOut">5</output></label><input id="m" type="range" min="1" max="50" step="1" value="5"></div>
+<div class="control"><label for="p">Bernoulli probability p <output id="pOut">0.30</output></label><input id="p" type="range" min="0.01" max="0.99" step="0.01" value="0.30"></div>
+<div class="control"><label for="reps">Number of trajectories <output id="repsOut">1500</output></label><input id="reps" type="range" min="100" max="5000" step="100" value="1500"></div>
+<div class="control"><label for="paths">Paths displayed <output id="pathsOut">8</output></label><input id="paths" type="range" min="1" max="20" step="1" value="8"></div>
+<div class="control"><label for="seed">Random seed</label><input id="seed" type="range" min="1" max="9999" step="1" value="42"></div>
+<div class="control"><label>Simulation note</label><div class="small">Changing m records the scenario; it does not alter increments without a specified attacker mechanism.</div></div>
+</div>
+<button id="run">Run simulation</button><button class="secondary" id="reset">Reset defaults</button>
+<div class="stats">
+<div class="stat"><div class="label">Empirical mean of Sₙ</div><strong id="meanS">—</strong></div>
+<div class="stat"><div class="label">Empirical variance of Sₙ</div><strong id="varS">—</strong></div>
+<div class="stat"><div class="label">Empirical mean of Sₙ/n</div><strong id="meanAvg">—</strong></div>
+<div class="stat"><div class="label">Empirical variance of Sₙ/n</div><strong id="varAvg">—</strong></div>
+<div class="stat"><div class="label">Empirical variance of Sₙ/√n</div><strong id="varNorm">—</strong></div>
+<div class="stat"><div class="label">Theoretical variance of Sₙ</div><strong id="theoryVar">—</strong></div>
+<div class="stat"><div class="label">Theoretical mean of Sₙ/n</div><strong id="theoryMean">—</strong></div>
+<div class="stat"><div class="label">Scenario</div><strong id="scenario">—</strong></div>
+</div>
+<div class="charts">
+<div class="chartwrap"><div class="charttitle">Sample trajectories: cumulative score Sₖ</div><canvas id="pathsChart" class="chart"></canvas></div>
+<div class="chartwrap"><div class="charttitle">Distribution of total score Sₙ</div><canvas id="totalChart" class="chart"></canvas></div>
+<div class="chartwrap"><div class="charttitle">Distribution of average score Sₙ/n</div><canvas id="avgChart" class="chart"></canvas></div>
+<div class="chartwrap"><div class="charttitle">Distribution of normalized score Sₙ/√n</div><canvas id="normChart" class="chart"></canvas></div>
+</div>
+<p class="small" id="simSummary" aria-live="polite"></p>
+</section>
+
+<section class="panel">
+<h2>4. Law of Large Numbers (LLN)</h2>
+<p>If the increments are i.i.d. with finite mean μ, the Strong Law of Large Numbers implies that the sample average converges to μ almost surely; in particular, it converges in probability:</p>
+<div class="formula">Sₙ/n → μ in probability as n → ∞</div>
+<p>For the Bernoulli model, μ = p, so the average fraction of successful steps approaches <em>p</em>. For the Rademacher model, μ = 0, so the average net score approaches zero. In the Rademacher case, typical total fluctuations are still of order √n, but dividing by <em>n</em> makes them shrink.</p>
+<div class="formula">Var(Sₙ/n) = σ²/n → 0</div>
+<p>Chebyshev's inequality makes the probability statement explicit: for every ε &gt; 0, P(|Sₙ/n − μ| ≥ ε) ≤ σ²/(nε²), which tends to zero.</p>
+</section>
+
+<section class="panel">
+<h2>5. Why the normalizations behave differently</h2>
+<div class="grid">
+<div>
+<h3>Total score Sₙ</h3>
+<p>Its variance grows linearly with n. In the Bernoulli model, the positive mean also makes the total typically grow near np. In the symmetric Rademacher model, the mean stays at zero while the standard deviation grows as √n.</p>
+<div class="formula">Var(Sₙ) = nσ²</div>
+</div>
+<div>
+<h3>Average score Sₙ/n</h3>
+<p>Its variance decreases like 1/n, so repeated trajectories become increasingly concentrated around the mean μ. This is the LLN scaling.</p>
+<div class="formula">Var(Sₙ/n) = σ²/n</div>
+</div>
+<div>
+<h3>Normalized total Sₙ/√n</h3>
+<p>Its variance remains constant. For Rademacher increments it is exactly 1, so this scaling preserves the random fluctuations instead of making them vanish.</p>
+<div class="formula">Var(Sₙ/√n) = σ²</div>
+</div>
+<div>
+<h3>Important Bernoulli distinction</h3>
+<p>Since Bernoulli increments have positive mean p (when p &gt; 0), Sₙ/√n has mean p√n, which grows. A centered CLT statement is therefore needed:</p>
+<div class="formula">(Sₙ − np) / √(np(1 − p)) ⇒ N(0,1)</div>
+<p class="small">For fixed 0 &lt; p &lt; 1. This differs from the uncentered Rademacher normalization.</p>
+</div>
+</div>
+</section>
+
+<section class="panel">
+<h2>6. Central Limit Theorem (CLT): Rademacher case</h2>
+<p>The Rademacher increments have mean μ = 0 and variance σ² = 1. The classical CLT states that for i.i.d. increments with finite variance:</p>
+<div class="formula">(Sₙ − nμ) / (σ√n) ⇒ N(0,1)</div>
+<p>Substituting μ = 0 and σ = 1 gives the required result directly:</p>
+<div class="formula">Sₙ / √n ⇒ N(0,1)</div>
+<p>The symbol ⇒ means convergence in distribution: as n increases, the distribution of the normalized total approaches the standard normal distribution. Individual values do not have to converge to a fixed number. The histogram becomes more bell-shaped, while the normalized variance stays at 1.</p>
+<div class="callout">For finite n, Sₙ takes only integer values with the same parity as n, so the distribution is discrete. The normal curve is a limiting approximation, not an exact finite-sample distribution.</div>
+</section>
+
+<section class="panel">
+<h2>7. Interpretation: systems and attackers</h2>
+<p>Think of each increment as the net contribution of one step in a penetration process. Under the Bernoulli model, each step contributes either zero or one success. Under the Rademacher model, each step contributes +1 or −1, representing a symmetric gain/loss or success/failure balance.</p>
+<ul>
+<li><strong>Increasing n:</strong> the total accumulates more increments; its variance grows as n. The average becomes more stable because its variance shrinks as 1/n.</li>
+<li><strong>Rademacher normalization:</strong> dividing by √n keeps fluctuations on an order-one scale, revealing the normal shape predicted by the CLT.</li>
+<li><strong>Increasing m:</strong> more attackers may plausibly mean more attempts or a higher aggregate penetration probability, but that conclusion requires an additional model. For example, if each of m independent attackers independently succeeds with probability q in a system, the probability of at least one success would be pₘ = 1 − (1 − q)ᵐ. That is an optional extension, not an assumption in the stated homework.</li>
+<li><strong>Independence caveat:</strong> real attackers may coordinate, share vulnerabilities, or compete for resources. Such effects can violate the i.i.d. assumption and change both the variance and limiting behavior.</li>
+</ul>
+</section>
+
+<section class="panel">
+<h2>8. Conclusions</h2>
+<p>The simulations illustrate three complementary views of the same sum. The raw total shows accumulation; the average isolates the long-run mean and concentrates around it by the LLN; and the square-root normalization retains fluctuations, which converge to a standard normal law in the zero-mean Rademacher model by the CLT. The number of systems/steps n has a precise mathematical role. The number of attackers m matters only after the model specifies how attackers affect increments or attempts.</p>
+</section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const controls = ['n','m','p','reps','paths','seed','model'];
+function updateLabels(){['n','m','p','reps','paths'].forEach(id=>$(id+'Out').textContent=id==='p'?Number($(id).value).toFixed(2):$(id).value);}
+function rngFactory(seed){let a=seed>>>0;return ()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+function fmt(x){return Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:4}):'—';}
+function mean(a){return a.reduce((s,x)=>s+x,0)/a.length;}
+function variance(a){const m=mean(a);return a.reduce((s,x)=>s+(x-m)**2,0)/a.length;}
+function setupCanvas(canvas){const dpr=window.devicePixelRatio||1, rect=canvas.getBoundingClientRect();canvas.width=Math.max(1,Math.floor(rect.width*dpr));canvas.height=Math.max(1,Math.floor(rect.height*dpr));const c=canvas.getContext('2d');c.scale(dpr,dpr);return {c,w:rect.width,h:rect.height};}
+function drawAxes(c,w,h,pad, xmin,xmax,ymin,ymax,xLabel,yLabel){c.clearRect(0,0,w,h);c.font='11px system-ui';c.lineWidth=1;c.strokeStyle='#2c3958';c.fillStyle='#a9b5d1';for(let i=0;i<=4;i++){let y=pad.t+(h-pad.t-pad.b)*i/4;c.beginPath();c.moveTo(pad.l,y);c.lineTo(w-pad.r,y);c.stroke();let v=ymax-(ymax-ymin)*i/4;c.fillText(fmt(v),3,y+4);}for(let i=0;i<=4;i++){let x=pad.l+(w-pad.l-pad.r)*i/4;c.fillText(fmt(xmin+(xmax-xmin)*i/4),x-12,h-7);}c.fillStyle='#cbd7f2';c.fillText(xLabel,pad.l,h-23);c.save();c.translate(12,h/2);c.rotate(-Math.PI/2);c.fillText(yLabel,0,0);c.restore();}
+function drawPaths(paths,n,model){const {c,w,h}=setupCanvas($('pathsChart')),pad={l:48,r:12,t:14,b:38};let vals=paths.flat();let ymin=Math.min(...vals),ymax=Math.max(...vals);if(ymin===ymax){ymin-=1;ymax+=1;}let margin=(ymax-ymin)*.08;ymin-=margin;ymax+=margin;drawAxes(c,w,h,pad,0,n,ymin,ymax,'step k','cumulative score');const colors=['#76a9ff','#58dfd0','#ffb86b','#f38ab8','#9be2a5','#c6a0ff','#f5e98b','#80d8ff'];paths.forEach((a,j)=>{c.beginPath();c.strokeStyle=colors[j%colors.length];c.lineWidth=1.5;a.forEach((v,i)=>{let x=pad.l+(w-pad.l-pad.r)*i/n,y=pad.t+(h-pad.t-pad.b)*(ymax-v)/(ymax-ymin);i?c.lineTo(x,y):c.moveTo(x,y);});c.stroke();});}
+function drawHist(canvasId,data,model,kind,n,p){const {c,w,h}=setupCanvas($(canvasId)),pad={l:48,r:12,t:14,b:38};let lo=Math.min(...data),hi=Math.max(...data);if(kind==='norm'&&model==='rademacher'){lo=Math.min(lo,-4);hi=Math.max(hi,4);}if(lo===hi){lo-=1;hi+=1;}let bins=Math.min(55,Math.max(12,Math.round(Math.sqrt(data.length)))),step=(hi-lo)/bins,counts=new Array(bins).fill(0);data.forEach(v=>counts[Math.min(bins-1,Math.max(0,Math.floor((v-lo)/step)))]++);let dens=counts.map(v=>v/(data.length*step));let ymax=Math.max(...dens)*1.18;
+if(kind==='norm'&&model==='rademacher'){for(let i=0;i<bins;i++){let x=lo+(i+.5)*step;let normal=Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);ymax=Math.max(ymax,normal*1.15);}}
+drawAxes(c,w,h,pad,lo,hi,0,ymax,'score','density');
+const plotW=w-pad.l-pad.r,plotH=h-pad.t-pad.b;c.fillStyle='#76a9ff88';counts.forEach((v,i)=>{let x=pad.l+plotW*i/bins,y=pad.t+plotH*(1-dens[i]/ymax),bw=plotW/bins;c.fillRect(x+1,y,Math.max(1,bw-2),pad.t+plotH-y);});
+if(kind==='norm'&&model==='rademacher'){c.beginPath();c.strokeStyle='#ffb86b';c.lineWidth=2.5;for(let i=0;i<=180;i++){let x=lo+(hi-lo)*i/180,y=Math.exp(-x*x/2)/Math.sqrt(2*Math.PI),px=pad.l+plotW*i/180,py=pad.t+plotH*(1-y/ymax);i?c.lineTo(px,py):c.moveTo(px,py);}c.stroke();c.fillStyle='#ffb86b';c.fillText('N(0,1)',w-63,25);}
+}
+function simulate(){
+ updateLabels();const model=$('model').value,n=+$('n').value,m=+$('m').value,p=+$('p').value,reps=+$('reps').value,pathCount=+$('paths').value,rng=rngFactory(+$('seed').value);
+ const sums=[],avgs=[],norms=[],paths=[];for(let r=0;r<reps;r++){let s=0,path=r<pathCount?[0]:null;for(let i=0;i<n;i++){if(model==='bernoulli')s+=rng()<p?1:0;else s+=rng()<.5?1:-1;if(path)path.push(s);}sums.push(s);avgs.push(s/n);norms.push(s/Math.sqrt(n));if(path)paths.push(path);}
+ const mu=model==='bernoulli'?p:0,sig2=model==='bernoulli'?p*(1-p):1;
+ $('meanS').textContent=fmt(mean(sums));$('varS').textContent=fmt(variance(sums));$('meanAvg').textContent=fmt(mean(avgs));$('varAvg').textContent=fmt(variance(avgs));$('varNorm').textContent=fmt(variance(norms));$('theoryVar').textContent=fmt(n*sig2);$('theoryMean').textContent=fmt(mu);$('scenario').textContent=`n=${n}, m=${m}`;
+ drawPaths(paths,n,model);drawHist('totalChart',sums,model,'total',n,p);drawHist('avgChart',avgs,model,'avg',n,p);drawHist('normChart',norms,model,'norm',n,p);
+ let note=model==='rademacher'?`Theory: E[Sₙ]=0, Var(Sₙ)=${n}, Var(Sₙ/n)=${fmt(1/n)}, Var(Sₙ/√n)=1. The orange curve in the normalized histogram is the standard normal density.`:`Theory: E[Sₙ]=${fmt(n*p)}, Var(Sₙ)=${fmt(n*p*(1-p))}, Var(Sₙ/n)=${fmt(p*(1-p)/n)}, Var(Sₙ/√n)=${fmt(p*(1-p))}. Since p>0, the uncentered Sₙ/√n has growing mean p√n; use a centered/scaled quantity for the CLT.`;
+ $('simSummary').textContent=note+` Displayed paths are ${paths.length} of ${reps} simulated trajectories. m=${m} is reported as context only; no attacker mechanism was specified.`;
+}
+controls.forEach(id=>$(id).addEventListener('input',()=>{updateLabels();}));$('run').addEventListener('click',simulate);$('reset').addEventListener('click',()=>{$('model').value='rademacher';$('n').value=100;$('m').value=5;$('p').value=.30;$('reps').value=1500;$('paths').value=8;$('seed').value=42;simulate();});window.addEventListener('resize',()=>simulate());simulate();
+</script>
+</body>
+</html>
